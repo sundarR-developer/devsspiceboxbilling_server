@@ -1,0 +1,11 @@
+const express = require('express');
+const { getRevenueBreakdown, getTopSellingItems } = require('../controllers/analyticsController');
+const { exportMostSoldProducts, exportRevenueBreakdown, exportFullReport } = require('../controllers/excelExportController');
+const auth = require('../middleware/authMiddleware');
+const router = express.Router();
+router.get('/revenue', auth, getRevenueBreakdown);
+router.get('/top-items', auth, getTopSellingItems);
+router.get('/export/most-sold', auth, exportMostSoldProducts);
+router.get('/export/revenue', auth, exportRevenueBreakdown);
+router.get('/export/full-report', auth, exportFullReport);
+module.exports = router;

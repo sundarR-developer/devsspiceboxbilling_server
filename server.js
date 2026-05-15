@@ -9,7 +9,22 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// Allowed origins: from environment variable FRONTEND_URL (comma separated) + localhost for dev
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+  : ['http://localhost:5173'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}));
+
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
@@ -30,7 +45,10 @@ app.use('/api/reports', require('./routes/reportRoutes'));
 
 const server = http.createServer(app);
 const io = socketIo(server, {
-  cors: { origin: "http://localhost:5173", methods: ["GET", "POST"] }
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"]
+  }
 });
 app.set('io', io);
 

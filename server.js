@@ -32,6 +32,26 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
 
+// ========== ROOT ROUTE – FIXES "Cannot GET /" ==========
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Welcome to the Restaurant Billing API',
+    status: 'Server is running',
+    endpoints: {
+      auth: '/api/auth',
+      orders: '/api/orders',
+      tables: '/api/tables',
+      payment: '/api/payment',
+      products: '/api/admin/products',
+      discounts: '/api/admin/discounts',
+      combos: '/api/admin/combos',
+      analytics: '/api/analytics',
+      reports: '/api/reports'
+    }
+  });
+});
+// ========================================================
+
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));

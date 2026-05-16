@@ -14,10 +14,9 @@ const allowedOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
   : ['http://localhost:5173'];
 
-// CORS middleware for Express routes
+// CORS middleware for Express routes (including preflight)
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
       callback(null, true);
@@ -25,8 +24,13 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
 }));
+
+// Handle preflight explicitly for all routes
+app.options('*', cors());
 
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
@@ -35,7 +39,7 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
 
-// Root route (for health check / welcome message)
+// Root route
 app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to the Restaurant Billing API',
@@ -71,7 +75,8 @@ const io = socketIo(server, {
     origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true
-  }
+  },
+  transports: ['websocket', 'polling'] // allow both
 });
 app.set('io', io);
 
@@ -79,4 +84,5 @@ require('./sockets/kitchenSocket')(io);
 
 server.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
+  console.log('Allowed CORS origins:', allowedOrigins);
 });

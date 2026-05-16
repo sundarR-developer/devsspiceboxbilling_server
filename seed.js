@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
 const bcrypt = require('bcryptjs');
 
-const uri = "mongodb+srv://sundardeveloper:root123@cluster0.xxxxx.mongodb.net/restaurant_billing?retryWrites=true&w=majority";
+const uri = "mongodb+srv://sundardeveloper:root123@cluster0.pcfpksr.mongodb.net/restaurant_billing?retryWrites=true&w=majority";
 
 async function seed() {
   const client = new MongoClient(uri);

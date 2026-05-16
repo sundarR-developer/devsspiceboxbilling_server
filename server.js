@@ -14,15 +14,18 @@ const allowedOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
   : ['http://localhost:5173'];
 
+// CORS middleware for Express routes
 app.use(cors({
   origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
-  }
+  },
+  credentials: true
 }));
 
 app.use(express.json());
@@ -32,7 +35,7 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
 
-// ========== ROOT ROUTE – FIXES "Cannot GET /" ==========
+// Root route (for health check / welcome message)
 app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to the Restaurant Billing API',
@@ -50,9 +53,8 @@ app.get('/', (req, res) => {
     }
   });
 });
-// ========================================================
 
-// Routes
+// API Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/tables', require('./routes/tableRoutes'));
@@ -67,7 +69,8 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: allowedOrigins,
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 app.set('io', io);

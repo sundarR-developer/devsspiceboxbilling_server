@@ -9,12 +9,12 @@ dotenv.config();
 
 const app = express();
 
-// Allowed origins: from environment variable FRONTEND_URL (comma separated) + localhost for dev
+// Allowed origins from environment variable
 const allowedOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
   : ['http://localhost:5173'];
 
-// CORS middleware for Express routes (including preflight)
+// CORS middleware
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
@@ -29,15 +29,15 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
 }));
 
-// Handle preflight explicitly for all routes
 app.options('*', cors());
 
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
+// MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log(err));
+  .catch(err => console.log('MongoDB connection error:', err));
 
 // Root route
 app.get('/', (req, res) => {
@@ -45,7 +45,7 @@ app.get('/', (req, res) => {
     message: 'Welcome to the Restaurant Billing API',
     status: 'Server is running',
     endpoints: {
-      auth: '/api/auth',
+      auth: '/api/auth/login',
       orders: '/api/orders',
       tables: '/api/tables',
       payment: '/api/payment',
@@ -73,16 +73,17 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: allowedOrigins,
-    methods: ["GET", "POST"],
+    methods: ['GET', 'POST'],
     credentials: true
   },
-  transports: ['websocket', 'polling'] // allow both
+  transports: ['websocket', 'polling']
 });
 app.set('io', io);
 
 require('./sockets/kitchenSocket')(io);
 
-server.listen(process.env.PORT, () => {
-  console.log(`Server running on port ${process.env.PORT}`);
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
   console.log('Allowed CORS origins:', allowedOrigins);
 });
